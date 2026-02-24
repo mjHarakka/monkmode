@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { TimerStatus } from '../types'
 
-const DURATIONS = [25, 45, 60] as const
+const DURATIONS = [25, 45] as const
+
+const REST_INFO: Record<number, string> = {
+  25: '5 min rest · 15 min after 4 sessions',
+  45: '15 min rest',
+}
 
 const CIRCUMFERENCE = 2 * Math.PI * 120 // r=120
 
@@ -132,43 +137,62 @@ export default function Timer({ onSessionComplete }: TimerProps) {
       <div
         style={{
           display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
           gap: '0.5rem',
-          background: 'var(--bg-surface)',
-          border: '1px solid var(--border)',
-          borderRadius: '12px',
-          padding: '0.35rem',
         }}
       >
-        {DURATIONS.map((d) => (
-          <button
-            key={d}
-            onClick={() => pickDuration(d)}
-            disabled={status !== 'idle'}
-            style={{
-              padding: '0.45rem 1.1rem',
-              borderRadius: '8px',
-              border: 'none',
-              background:
-                selectedDuration === d ? 'var(--accent-dim)' : 'transparent',
-              color:
-                selectedDuration === d
-                  ? 'var(--accent)'
-                  : 'var(--text-secondary)',
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: '0.82rem',
-              fontWeight: selectedDuration === d ? 600 : 400,
-              outline:
-                selectedDuration === d
-                  ? '1px solid var(--accent-glow)'
-                  : 'none',
-              transition: 'all 0.2s',
-              cursor: status === 'idle' ? 'pointer' : 'default',
-              opacity: status !== 'idle' && selectedDuration !== d ? 0.35 : 1,
-            }}
-          >
-            {d}m
-          </button>
-        ))}
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '12px',
+            padding: '0.35rem',
+          }}
+        >
+          {DURATIONS.map((d) => (
+            <button
+              key={d}
+              onClick={() => pickDuration(d)}
+              disabled={status !== 'idle'}
+              style={{
+                padding: '0.45rem 1.1rem',
+                borderRadius: '8px',
+                border: 'none',
+                background:
+                  selectedDuration === d ? 'var(--accent-dim)' : 'transparent',
+                color:
+                  selectedDuration === d
+                    ? 'var(--accent)'
+                    : 'var(--text-secondary)',
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: '0.82rem',
+                fontWeight: selectedDuration === d ? 600 : 400,
+                outline:
+                  selectedDuration === d
+                    ? '1px solid var(--accent-glow)'
+                    : 'none',
+                transition: 'all 0.2s',
+                cursor: status === 'idle' ? 'pointer' : 'default',
+                opacity: status !== 'idle' && selectedDuration !== d ? 0.35 : 1,
+              }}
+            >
+              {d}m
+            </button>
+          ))}
+        </div>
+        <p
+          style={{
+            fontSize: '0.72rem',
+            color: 'var(--text-secondary)',
+            margin: 0,
+            letterSpacing: '0.02em',
+          }}
+        >
+          rest · {REST_INFO[selectedDuration]}
+        </p>
       </div>
 
       {/* SVG Ring Timer */}
