@@ -2,8 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from 'firebase/auth'
 import {
   onAuthStateChanged,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signOut as firebaseSignOut,
 } from 'firebase/auth'
 import { auth, googleProvider } from '../lib/firebase'
@@ -11,6 +10,7 @@ import { auth, googleProvider } from '../lib/firebase'
 interface AuthContextType {
   user: User | null
   loading: boolean
+  signInError: string | null
   signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
 }
@@ -20,10 +20,9 @@ const AuthContext = createContext<AuthContextType | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [signInError, setSignInError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Handle the result after Google redirects back to the app
-    getRedirectResult(auth).catch(() => {})
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u)
       setLoading(false)
@@ -32,7 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signInWithGoogle = async () => {
-    await signInWithRedirect(auth, googleProvider)
+    setSignInError(null)
+    try {
+      await signInWithPopup(auth, googleProvider)
+    } catch (err) {
+      setSignInError(err instanceof Error ? err.message : String(err))
+    }
   }
 
   const signOut = async () => {
@@ -40,7 +44,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider
+      value={{ user, loading, signInError, signInWithGoogle, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )
