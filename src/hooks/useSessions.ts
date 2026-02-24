@@ -11,6 +11,20 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../contexts/AuthContext'
 import type { FocusSession, StreakData } from '../types'
 
+const LOCAL_KEY = 'monkflow_sessions'
+
+function loadLocal(): FocusSession[] {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_KEY) ?? '[]') as FocusSession[]
+  } catch {
+    return []
+  }
+}
+
+function saveLocal(sessions: FocusSession[]) {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(sessions))
+}
+
 function todayStr() {
   return new Date().toISOString().split('T')[0]
 }
@@ -85,8 +99,18 @@ export function useSessions() {
   const [weeklyMinutes, setWeeklyMinutes] = useState(0)
 
   useEffect(() => {
-    if (!user) return
     const load = async () => {
+      if (!user) {
+        const data = await Promise.resolve(loadLocal())
+        setSessions(data)
+        setStreak(computeStreak(data))
+        setTotalMinutes(
+          data.reduce((acc, s) => acc + Math.floor(s.actualDuration / 60), 0),
+        )
+        setWeeklyMinutes(computeWeeklyMinutes(data))
+        setLoading(false)
+        return
+      }
       const q = query(
         collection(db, 'users', user.uid, 'sessions'),
         orderBy('completedAt', 'desc'),
@@ -114,7 +138,21 @@ export function useSessions() {
   const addSession = async (
     session: Omit<FocusSession, 'id'>,
   ): Promise<void> => {
-    if (!user) return
+    if (!user) {
+      const newSession: FocusSession = {
+        id: `local_${Date.now()}`,
+        ...session,
+      }
+      const updated = [newSession, ...sessions]
+      setSessions(updated)
+      setStreak(computeStreak(updated))
+      setTotalMinutes(
+        updated.reduce((acc, s) => acc + Math.floor(s.actualDuration / 60), 0),
+      )
+      setWeeklyMinutes(computeWeeklyMinutes(updated))
+      saveLocal(updated)
+      return
+    }
     const ref = await addDoc(collection(db, 'users', user.uid, 'sessions'), {
       ...session,
       completedAt: Timestamp.fromDate(new Date(session.completedAt)),

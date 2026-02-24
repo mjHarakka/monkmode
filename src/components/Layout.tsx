@@ -2,7 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Layout() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, signInWithGoogle } = useAuth()
 
   return (
     <div
@@ -39,7 +39,7 @@ export default function Layout() {
             letterSpacing: '-0.01em',
           }}
         >
-          ◎ monk mode
+          ◎ monk flow
         </span>
 
         {/* Nav links */}
@@ -74,42 +74,69 @@ export default function Layout() {
 
         {/* User */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          {user?.photoURL && (
-            <img
-              src={user.photoURL}
-              alt={user.displayName ?? ''}
+          {user ? (
+            <>
+              {user.photoURL && (
+                <img
+                  src={user.photoURL}
+                  alt={user.displayName ?? ''}
+                  style={{
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    opacity: 0.8,
+                  }}
+                />
+              )}
+              <button
+                onClick={signOut}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--border)',
+                  borderRadius: '7px',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.78rem',
+                  padding: '0.3rem 0.65rem',
+                  transition: 'color 0.2s, border-color 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLButtonElement).style.color =
+                    'var(--text-secondary)'
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLButtonElement).style.color =
+                    'var(--text-muted)'
+                }}
+              >
+                sign out
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={signInWithGoogle}
               style={{
-                width: '26px',
-                height: '26px',
-                borderRadius: '50%',
-                opacity: 0.8,
+                background: 'var(--accent-dim)',
+                border: '1px solid var(--accent-glow)',
+                borderRadius: '7px',
+                color: 'var(--accent)',
+                fontSize: '0.78rem',
+                fontFamily: "'JetBrains Mono', monospace",
+                fontWeight: 600,
+                padding: '0.3rem 0.75rem',
+                transition: 'all 0.2s',
               }}
-            />
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.background =
+                  'rgba(245,158,11,0.18)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLButtonElement).style.background =
+                  'var(--accent-dim)'
+              }}
+            >
+              sign in
+            </button>
           )}
-          <button
-            onClick={signOut}
-            style={{
-              background: 'none',
-              border: '1px solid var(--border)',
-              borderRadius: '7px',
-              color: 'var(--text-muted)',
-              fontSize: '0.78rem',
-              padding: '0.3rem 0.65rem',
-              transition: 'color 0.2s, border-color 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.color =
-                'var(--text-secondary)'
-              ;(e.currentTarget as HTMLButtonElement).style.borderColor =
-                'var(--border)'
-            }}
-            onMouseLeave={(e) => {
-              ;(e.currentTarget as HTMLButtonElement).style.color =
-                'var(--text-muted)'
-            }}
-          >
-            sign out
-          </button>
         </div>
       </header>
 
